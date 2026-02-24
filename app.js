@@ -24,7 +24,7 @@ const app = express();
 
 // enable other domains to access api (cross origin resource sharing)
 app.use(cors());
-app.options("/*", cors());
+app.options("/{*any}", cors());
 
 // to compress response
 app.use(compression());
