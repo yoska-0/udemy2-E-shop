@@ -7,7 +7,7 @@ import compression from "compression";
 import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 
-import checkWebHook from "./controllers/orderController.js";
+import orderController from "./controllers/orderController.js";
 
 // import routes
 import categoryRoute from "./routes/categoryRoute.js";
@@ -36,7 +36,7 @@ app.use(compression());
 app.post(
   "/webhook-checkout",
   express.raw({ type: "application/json" }),
-  checkWebHook,
+  orderController.checkWebHook,
 );
 
 // set static folder
