@@ -7,7 +7,7 @@ import compression from "compression";
 import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 
-import { checkWebHook } from "./controllers/orderController.js";
+import checkWebHook from "./controllers/orderController.js";
 
 // import routes
 import categoryRoute from "./routes/categoryRoute.js";
