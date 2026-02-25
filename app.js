@@ -6,6 +6,9 @@ import compression from "compression";
 
 import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
+
+import { checkWebHook } from "./controllers/orderController.js";
+
 // import routes
 import categoryRoute from "./routes/categoryRoute.js";
 import supCategoryRoute from "./routes/supCategoryRoute.js";
@@ -28,6 +31,13 @@ app.options("/{*any}", cors());
 
 // to compress response
 app.use(compression());
+
+// webhook
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  checkWebHook,
+);
 
 // set static folder
 const __filename = fileURLToPath(import.meta.url);
