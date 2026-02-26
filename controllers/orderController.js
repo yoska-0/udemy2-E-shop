@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import asyncHandler from "express-async-handler";
 import Order from "../models/orderModel.js";
 import Cart from "../models/cartModel.js";
+import User from "../models/userModel.js";
 import Product from "../models/prodactModel.js";
 import AppError from "../utils/AppError.js";
 import factor from "./factoryHandelar.js";
@@ -151,6 +152,40 @@ const creatStripeOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
+const createCardOrder = async (session) => {
+  const cartId = session.client_reference_id;
+  const orderPrice = session.amount_total / 100;
+
+  const cart = await Cart.findById(cartId);
+  const user = await User.findOne({ email: session.customer_email });
+
+  // create an order with card
+  const order = await Order.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    taxPrice: cart.taxPrice,
+    totalPrice: orderPrice,
+    isPaid: true,
+    paidAt: Date.now(),
+  });
+
+  // incress sold and decress quaintity
+
+  if (order) {
+    const optionsBulk = cart.cartItems.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { sold: +item.quantity, quantity: -item.quantity } },
+      },
+    }));
+
+    await Product.bulkWrite(optionsBulk);
+
+    // clear cart
+    await Cart.findOneAndDelete(cartId);
+  }
+};
+
 const checkWebHook = (req, res) => {
   let event;
   if (process.env.STRIPE_WEBHOOK_SECRET) {
@@ -167,9 +202,11 @@ const checkWebHook = (req, res) => {
       return res.sendStatus(400);
     }
   }
-  console.log("doneeeeeeeeeeeeeeeeeee");
-  console.log(event.type);
-  console.log("doneeeeeeeeeeeeeeeeeee");
+  if (event.type === "checkout.session.completed") {
+    createCardOrder(event.data.object);
+  }
+
+  res.status(200).json({ received: true });
 };
 
 export default {
