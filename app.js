@@ -43,7 +43,7 @@ app.post(
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use(express.json());
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "uploads")));
 
 //for extended url to convert url to suported quary format it uses advanced library like {qs}
