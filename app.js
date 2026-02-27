@@ -3,6 +3,10 @@ import express from "express";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
+import hpp from "hpp";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
 
 import AppError from "./utils/AppError.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
@@ -48,6 +52,32 @@ app.use(express.static(path.join(__dirname, "uploads")));
 
 //for extended url to convert url to suported quary format it uses advanced library like {qs}
 app.set("query parser", "extended");
+
+// data sanitization
+app.use(mongoSanitize());
+app.use(xss());
+
+// rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+});
+
+app.use("/api", limiter);
+
+// prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      "duration",
+      "ratingsAverage",
+      "ratingsQuantity",
+      "maxGroupSize",
+      "difficulty",
+      "price",
+    ],
+  }),
+);
 
 //Router
 app.use("/api/v1/category", categoryRoute);
